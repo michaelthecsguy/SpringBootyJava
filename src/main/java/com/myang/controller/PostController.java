@@ -1,6 +1,7 @@
 package com.myang.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.Gson;
 import com.myang.dao.Impl.PostDAOImpl;
 import com.myang.dao.PostDAO;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Map;
 
 /**
@@ -73,6 +75,7 @@ public class PostController
 
   //Spring dictates the HTTP status code
   @RequestMapping(method = RequestMethod.POST, value = "/createPost")
+  @ResponseBody
   public String createAPost(@RequestBody(required = true) String newPostObject)
   {
     try {
@@ -87,6 +90,30 @@ public class PostController
     } catch (IOException ex) {
       //response.status(HTTP_BAD_REQUEST);
       return "Request Body does not match with DTO Object but HTTP status is still 200 instead of 400 in PostMan";
+    }
+  }
+
+  @RequestMapping(method = RequestMethod.GET, value = "/listAllPosts")
+  @ResponseBody
+  public String listAllPosts()
+  {
+    return dataToJson(postDao.getAllPostsInList());
+  }
+
+  public static String dataToJson(Object data)
+  {
+    try
+    {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.enable(SerializationFeature.INDENT_OUTPUT);
+      StringWriter sw = new StringWriter();
+      mapper.writeValue(sw, data);
+
+      return sw.toString();
+    }
+    catch (IOException e)
+    {
+      throw new RuntimeException("IOException from a StringWriter?");
     }
   }
 }
